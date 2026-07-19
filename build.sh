@@ -5,10 +5,19 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+INSTALL=false
+for arg in "$@"; do
+    case "$arg" in
+        --install|-i) INSTALL=true ;;
+        *) echo "unknown option: $arg" >&2; exit 1 ;;
+    esac
+done
+
 APP_NAME="Switch"
 EXECUTABLE="Switcher"
 BUNDLE_ID="com.local.switch"
 CONFIG="release"
+INSTALL_DIR="/Applications"
 
 echo "==> swift build ($CONFIG)"
 swift build -c "$CONFIG"
@@ -45,4 +54,18 @@ echo "==> ad-hoc codesign"
 codesign --force --deep --sign - "$APP_DIR"
 
 echo "==> done: $APP_DIR"
-echo "Run it with:  open \"$APP_DIR\""
+
+if [ "$INSTALL" = true ]; then
+    echo "==> installing to $INSTALL_DIR"
+    # Quit a running instance so the bundle can be replaced.
+    osascript -e "quit app \"$APP_NAME\"" 2>/dev/null || true
+    sleep 1
+    rm -rf "$INSTALL_DIR/$APP_NAME.app"
+    # ditto preserves the ad-hoc signature.
+    ditto "$APP_DIR" "$INSTALL_DIR/$APP_NAME.app"
+    echo "==> installed: $INSTALL_DIR/$APP_NAME.app"
+    echo "Run it with:  open \"$INSTALL_DIR/$APP_NAME.app\""
+else
+    echo "Run it with:  open \"$APP_DIR\""
+    echo "Install to $INSTALL_DIR with:  ./build.sh --install"
+fi

@@ -19,12 +19,15 @@ A lightweight menu-bar app that replaces the default (app-level) Cmd+Tab with a
 Requires the Swift toolchain (Command Line Tools is enough — full Xcode not needed).
 
 ```sh
-./build.sh
+./build.sh              # build only → build/Switch.app
+./build.sh --install    # build, then install to /Applications
 open build/Switch.app
 ```
 
 `build.sh` compiles with SwiftPM, assembles `build/Switch.app`, and ad-hoc signs it
-so the Accessibility grant survives rebuilds.
+so the Accessibility grant survives rebuilds. With `--install` it also quits any
+running instance and copies the bundle to `/Applications` (preferred before enabling
+launch-at-login).
 
 ## First run
 
